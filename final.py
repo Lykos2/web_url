@@ -7,7 +7,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 
 
-
+#need to do from first
 
 device_type="cuda" if torch.cuda.is_available() else "cpu"
 
