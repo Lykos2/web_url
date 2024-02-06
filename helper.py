@@ -6,7 +6,8 @@ import logging
 from auto_gptq import AutoGPTQForCausalLM
 from huggingface_hub import hf_hub_download
 from langchain.chains import RetrievalQA
-from langchain.llms import HuggingFacePipeline, LlamaCpp
+from langchain.llms import HuggingFacePipeline
+from langchain_community.llms import LlamaCpp
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 from langchain_community.llms import HuggingFaceHub
