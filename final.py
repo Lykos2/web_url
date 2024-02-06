@@ -6,15 +6,18 @@ from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
+from helper import get_embeddings
 
 #need to do from first
 
 device_type="cuda" if torch.cuda.is_available() else "cpu"
 
+MODEL_ID = ""
+MODEL_BASENAME = ""
+EMBEDDING_MODEL_NAME = ""
 
 #embeddings = HuggingFaceInstructEmbeddings(model_name=EMBEDDING_MODEL_NAME, model_kwargs={"device": device_type})
 
@@ -31,15 +34,16 @@ def get_vectorstore_from_url(url):
     # split the document into chunks
     text_splitter = RecursiveCharacterTextSplitter()
     document_chunks = text_splitter.split_documents(document)
+    emb=get_embeddings(EMBEDDING_MODEL_NAME,device_type)
     
     # create a vectorstore from the chunks
-    vector_store = Chroma.from_documents(document_chunks, OpenAIEmbeddings())
+    vector_store = Chroma.from_documents(document_chunks, emb)
 
     return vector_store
 
 
 def get_context_retriever_chain(vector_store):
-    llm = ChatOpenAI()
+    llm = load_model(device_type, model_id=MODEL_ID, model_basename=MODEL_BASENAME, LOGGING=logging)
     
     retriever = vector_store.as_retriever()
     

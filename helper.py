@@ -3,15 +3,18 @@ import io
 import torch 
 from PyPDF2 import PdfReader
 import logging 
-
-from langchain.embeddings import HuggingFaceEmbeddings
 from auto_gptq import AutoGPTQForCausalLM
 from huggingface_hub import hf_hub_download
 from langchain.chains import RetrievalQA
-from langchain.embeddings import HuggingFaceInstructEmbeddings
 from langchain.llms import HuggingFacePipeline, LlamaCpp
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
+from langchain_community.llms import HuggingFaceHub
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceInstructEmbeddings
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+from langchain_community.embeddings import HuggingFaceHubEmbeddings
+
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -70,23 +73,7 @@ def read_file_to_list(file_path):
 
 
 def load_model(device_type, model_id, model_basename=None, LOGGING=logging):
-    """
-    Select a model for text generation using the HuggingFace library.
-    If you are running this for the first time, it will download a model for you.
-    subsequent runs will use the model from the disk.
 
-    Args:
-        device_type (str): Type of device to use, e.g., "cuda" for GPU or "cpu" for CPU.
-        model_id (str): Identifier of the model to load from HuggingFace's model hub.
-        model_basename (str, optional): Basename of the model if using quantized models.
-            Defaults to None.
-
-    Returns:
-        HuggingFacePipeline: A pipeline object for text generation using the loaded model.
-
-    Raises:
-        ValueError: If an unsupported model or device type is provided.
-    """
     logging.info(f"Loading Model: {model_id}, on: {device_type}")
     logging.info("This action can take a few minutes!")
 
@@ -130,3 +117,27 @@ def process_pdf(pdf_reader):
     text=""
     for page in pdf_reader.pages:
         text+=page.extract_text()
+
+
+
+def get_embeddings(EMBEDDING_MODEL_NAME,device_type="cuda"):
+    if "instructor" in EMBEDDING_MODEL_NAME:
+        return HuggingFaceInstructEmbeddings(
+            model_name=EMBEDDING_MODEL_NAME,
+            model_kwargs={"device": device_type},
+            embed_instruction="Represent the document for retrieval:",
+            query_instruction="Represent the question for retrieving supporting documents:",
+        )
+
+    elif "bge" in EMBEDDING_MODEL_NAME:
+        return HuggingFaceBgeEmbeddings(
+            model_name=EMBEDDING_MODEL_NAME,
+            model_kwargs={"device": device_type},
+            query_instruction="Represent this sentence for searching relevant passages:",
+        )
+
+    else:
+        return HuggingFaceEmbeddings(
+            model_name=EMBEDDING_MODEL_NAME,
+            model_kwargs={"device": device_type},
+        )
