@@ -1,7 +1,6 @@
 import os
 import io 
 import torch 
-from PyPDF2 import PdfReader
 import logging 
 from auto_gptq import AutoGPTQForCausalLM
 from huggingface_hub import hf_hub_download

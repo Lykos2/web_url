@@ -1,6 +1,7 @@
 import streamlit as st
 import torch 
-import streamlit as st
+import re
+
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -11,6 +12,13 @@ from langchain.chains import create_history_aware_retriever, create_retrieval_ch
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from helper import get_embeddings
 from helper import load_model 
+from langchain_community.document_transformers import Html2TextTransformer
+from langchain.document_loaders import AsyncHtmlLoader
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+
+
 
 #need to do from first
 
@@ -20,26 +28,45 @@ MODEL_ID = "TheBloke/Llama-2-7b-Chat-GGUF"
 MODEL_BASENAME = "llama-2-7b-chat.Q4_K_M.gguf"
 EMBEDDING_MODEL_NAME = "intfloat/e5-base-v2"
 
-#embeddings = HuggingFaceInstructEmbeddings(model_name=EMBEDDING_MODEL_NAME, model_kwargs={"device": device_type})
+def get_all_links(url):
+    response = requests.get(url)
+    if response.status_code != 200:
+        print(f"Failed to retrieve the page: {url}")
+        return []
 
+    soup = BeautifulSoup(response.content, "html.parser")
 
+    # Finding all 'a' tags which typically contain href attribute for links
+    links = [
+        urljoin(url, a["href"])
+        for a in soup.find_all("a", href=True)
+        if a["href"]
+    ]
 
+    return links
 
-
-#only single page we have to make this for multiple html  pages 
 def get_vectorstore_from_url(url):
-    # get the text in document form
-    loader = WebBaseLoader(url)
-    document = loader.load()
+    
+    all_links=get_all_links(url)
+
+    url_pattern = re.compile(r'https?://\S+')
+    links = [url for url in all_links if url_pattern.match(url)]
+    links=links[0:100]
+
+    loader = AsyncHtmlLoader(links)
+    docs = loader.load()
+
+    html2text = Html2TextTransformer()
+    docs_transformed = html2text.transform_documents(docs)
+
     
     # split the document into chunks
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    document_chunks = text_splitter.split_documents(document)
+    document_chunks = text_splitter.split_documents(docs_transformed)
     emb=get_embeddings(EMBEDDING_MODEL_NAME,device_type)
     
     # create a vectorstore from the chunks
     vector_store = Chroma.from_documents(document_chunks, emb)
-
     return vector_store
 
 

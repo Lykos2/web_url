@@ -1,6 +1,7 @@
 import sys
 
 import torch
+import os 
 
 if sys.platform != "darwin":
     from auto_gptq import AutoGPTQForCausalLM
@@ -20,7 +21,12 @@ MAX_NEW_TOKENS = CONTEXT_WINDOW_SIZE  # int(CONTEXT_WINDOW_SIZE/4)
 
 N_GPU_LAYERS = 100  # Llama-2-70B has 83 layers
 N_BATCH = 512
+ROOT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 
+# Define the folder for storing database
+SOURCE_DIRECTORY = f"{ROOT_DIRECTORY}/SOURCE_DOCUMENTS"
+
+PERSIST_DIRECTORY = f"{ROOT_DIRECTORY}/DB"
 
 
 
