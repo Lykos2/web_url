@@ -58,11 +58,9 @@ def get_vectorstore_from_url(url):
 
     html2text = Html2TextTransformer()
     docs_transformed = html2text.transform_documents(docs)
-
-    
     # split the document into chunks
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    document_chunks = text_splitter.split_documents(docs_transformed)
+    document_chunks = text_splitter.split_documents(st.session_state.docs_transformed)
     emb=get_embeddings(EMBEDDING_MODEL_NAME,device_type)
     
     # create a vectorstore from the chunks
@@ -158,7 +156,3 @@ else:
         elif isinstance(message, HumanMessage):
             with st.chat_message("Human"):
                 st.write(message.content)
-
-
-
-#modd
