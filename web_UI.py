@@ -18,8 +18,16 @@ from langchain.chains import RetrievalQA
 
 device_type="cuda" if torch.cuda.is_available() else "cpu"
 
-MODEL_ID = "TheBloke/Llama-2-7b-Chat-GGUF"
-MODEL_BASENAME = "llama-2-7b-chat.Q4_K_M.gguf"
+
+
+MODEL_ID = "NousResearch/Llama-2-7b-chat-hf"
+MODEL_BASENAME = None
+
+#MODEL_ID = "TheBloke/Llama-2-7b-Chat-GGUF"
+#MODEL_BASENAME = "llama-2-7b-chat.Q4_K_M.gguf"
+
+
+
 EMBEDDING_MODEL_NAME = "intfloat/e5-base-v2"
 
 CHROMA_SETTINGS = Settings(
